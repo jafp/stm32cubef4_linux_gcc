@@ -38,8 +38,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
-#include "stm32f4xx_it.h"
+#include <conf.h>
 
 /** @addtogroup STM32F4xx_HAL_Examples
   * @{

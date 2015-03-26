@@ -1,21 +1,8 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "stm32f4xx_hal.h"
-#include "stm32f4xx_nucleo.h"
-
-#define USARTx                           USART2
-#define USARTx_CLK_ENABLE()              __USART2_CLK_ENABLE();
-#define USARTx_RX_GPIO_CLK_ENABLE()      __GPIOA_CLK_ENABLE()
-#define USARTx_TX_GPIO_CLK_ENABLE()      __GPIOA_CLK_ENABLE() 
-#define USARTx_FORCE_RESET()             __USART2_FORCE_RESET()
-#define USARTx_RELEASE_RESET()           __USART2_RELEASE_RESET()
-#define USARTx_TX_PIN                    GPIO_PIN_2
-#define USARTx_TX_GPIO_PORT              GPIOA  
-#define USARTx_TX_AF                     GPIO_AF7_USART2
-#define USARTx_RX_PIN                    GPIO_PIN_3
-#define USARTx_RX_GPIO_PORT              GPIOA 
-#define USARTx_RX_AF                     GPIO_AF7_USART2
+#include <conf.h>
+#include "foo.h"
 
 static void SystemClock_Config(void);
 static void Error_Handler(void);
@@ -24,27 +11,41 @@ static void uart_init(void);
 static void gpio_init(void);
 
 static GPIO_InitTypeDef GPIO_InitStruct;
-static UART_HandleTypeDef UartHandle;
+UART_HandleTypeDef UartHandle;
+
+class Foo2 : public Foo {
+public:
+    Foo2() : Foo(0) {}
+    void increment() { _counter += 2; }
+};
 
 int main(void)
 {
-    unsigned int i = 0;
-    char buffer[512];
-
     HAL_Init();
     SystemClock_Config();
 
     uart_init();
     gpio_init();
 
+    Foo* foo = new Foo2();
+    unsigned int iter = 0;
+
     while (1)
     {
-        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-        HAL_Delay(500);
+        iter++;
+        foo->increment();
 
-        sprintf(buffer, "%5d Foo, boo, bar, bom\r\n", ++i);
-        HAL_UART_Transmit(&UartHandle, (uint8_t*) buffer, strlen(buffer), 0xffff); 
+        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);     
+        HAL_Delay(200);
+   
+        printf("[%5d] Foo2 counter: %d\r\n", iter, foo->getCounter());
+
+        Foo* d = new Foo(10);
+        d->increment();
+        delete d;
     }
+
+    delete foo;
 }
 
 static void uart_init(void)
